@@ -723,24 +723,75 @@ function InventoryPanel() {
   );
 }
 
-function AnalyticsCard({
-  title,
-  metrics,
+function MetricCard({
+  label,
+  value,
+  note,
+  accent,
 }: {
-  title: string;
-  metrics: { label: string; value: string | number }[];
+  label: string;
+  value: string | number;
+  note: string;
+  accent: string;
 }) {
   return (
-    <section className="card analytics-card">
-      <h3>{title}</h3>
-      <dl className="analytics-metrics">
-        {metrics.map((metric) => (
-          <div key={metric.label}>
-            <dt>{metric.label}</dt>
-            <dd>{metric.value}</dd>
+    <article className={`metric-card ${accent}`}>
+      <span className="metric-label">{label}</span>
+      <strong className="metric-value">{value}</strong>
+      <span className="metric-note">{note}</span>
+    </article>
+  );
+}
+
+function StatusChart({
+  title,
+  caption,
+  rows,
+}: {
+  title: string;
+  caption: string;
+  rows: { label: string; value: number; color: string }[];
+}) {
+  const max = Math.max(...rows.map((row) => row.value), 1);
+  return (
+    <section className="analytics-card">
+      <div className="chart-heading">
+        <div><h3>{title}</h3><p>{caption}</p></div>
+        <span aria-hidden="true" className="chart-menu">···</span>
+      </div>
+      <div aria-label={title} className="bar-chart" role="img">
+        {rows.map((row, index) => (
+          <div className="bar-row" key={row.label}>
+            <div className="bar-meta"><span>{row.label}</span><strong>{row.value}</strong></div>
+            <div className="bar-track"><span className={`bar-fill ${row.color}`} style={{ width: `${Math.max((row.value / max) * 100, row.value ? 7 : 0)}%`, animationDelay: `${index * 100}ms` }} /></div>
           </div>
         ))}
-      </dl>
+      </div>
+    </section>
+  );
+}
+
+function InventoryDiagram({ overview }: { overview: OperationsOverview }) {
+  const total = overview.inventory.packages_on_hand;
+  const available = overview.inventory.packages_available;
+  const reserved = overview.inventory.packages_reserved;
+  const availablePercent = total ? Math.min(100, Math.max(0, Math.round((available / total) * 100))) : 0;
+  return (
+    <section className="analytics-card inventory-chart-card">
+      <div className="chart-heading">
+        <div><h3>Inventory health</h3><p>Package availability right now</p></div>
+        <span className="chart-kicker">LIVE BALANCE</span>
+      </div>
+      <div className="inventory-visual">
+        <div className="inventory-ring" role="img" aria-label={`${availablePercent}% available, ${reserved} reserved`} style={{ background: `conic-gradient(var(--chart-lime) 0 ${availablePercent}%, var(--chart-coral) ${availablePercent}% 100%)` }}>
+          <div className="inventory-ring-center"><strong>{availablePercent}%</strong><span>available</span></div>
+        </div>
+        <div className="inventory-legend">
+          <div><i className="legend-dot lime" /><span>Available</span><strong>{available.toLocaleString()}</strong></div>
+          <div><i className="legend-dot coral" /><span>Reserved</span><strong>{reserved.toLocaleString()}</strong></div>
+          <div><i className="legend-dot slate" /><span>Total on hand</span><strong>{total.toLocaleString()}</strong></div>
+        </div>
+      </div>
     </section>
   );
 }
@@ -918,50 +969,39 @@ function AnalyticsPanel() {
         <p className="muted">Loading operational metrics...</p>
       ) : overview ? (
         <>
+          <div className="analytics-welcome">
+            <div><span className="welcome-eyebrow">STORE PULSE <i /></span><h3>Your operations,<br /><em>at a glance.</em></h3><p>A live snapshot of the work happening across your store.</p></div>
+            <div className="welcome-orbit" aria-hidden="true"><span className="orbit-core">SQ</span><i className="orbit-dot orbit-dot-one" /><i className="orbit-dot orbit-dot-two" /><i className="orbit-dot orbit-dot-three" /></div>
+          </div>
+          <div className="metric-grid">
+            <MetricCard accent="metric-coral" label="Active products" value={overview.catalog.active_products.toLocaleString()} note="In your catalog" />
+            <MetricCard accent="metric-lime" label="Units available" value={overview.inventory.packages_available.toLocaleString()} note={`${overview.inventory.packages_reserved.toLocaleString()} currently reserved`} />
+            <MetricCard accent="metric-blue" label="Paid orders" value={overview.orders.paid.toLocaleString()} note={`${overview.orders.pending_payment.toLocaleString()} awaiting payment`} />
+            <MetricCard accent="metric-violet" label="Reviews to read" value={overview.reviews.pending.toLocaleString()} note={`${overview.feedback.new.toLocaleString()} new feedback notes`} />
+          </div>
           <div className="analytics-grid">
-            <AnalyticsCard
-              title="Catalog"
-              metrics={[
-                { label: "Active products", value: overview.catalog.active_products },
-                { label: "Active variants", value: overview.catalog.active_variants },
-              ]}
-            />
-            <AnalyticsCard
-              title="Inventory"
-              metrics={[
-                { label: "Packages on hand", value: overview.inventory.packages_on_hand },
-                { label: "Packages reserved", value: overview.inventory.packages_reserved },
-                { label: "Packages available", value: overview.inventory.packages_available },
-              ]}
-            />
-            <AnalyticsCard
-              title="Orders by status"
-              metrics={[
-                { label: "Pending payment", value: overview.orders.pending_payment },
-                { label: "Paid", value: overview.orders.paid },
-                { label: "Cancelled", value: overview.orders.cancelled },
-              ]}
-            />
-            <AnalyticsCard
-              title="Reviews"
-              metrics={[
-                { label: "Pending", value: overview.reviews.pending },
-                { label: "Approved", value: overview.reviews.approved },
-                { label: "Rejected", value: overview.reviews.rejected },
-                {
-                  label: "Average approved rating",
-                  value: overview.reviews.average_approved_rating,
-                },
-              ]}
-            />
-            <AnalyticsCard
-              title="Feedback by status"
-              metrics={[
-                { label: "New", value: overview.feedback.new },
-                { label: "In progress", value: overview.feedback.in_progress },
-                { label: "Resolved", value: overview.feedback.resolved },
-              ]}
-            />
+            <StatusChart title="Order flow" caption="Orders grouped by current status" rows={[
+              { label: "Paid", value: overview.orders.paid, color: "bar-lime" },
+              { label: "Awaiting payment", value: overview.orders.pending_payment, color: "bar-coral" },
+              { label: "Cancelled", value: overview.orders.cancelled, color: "bar-muted" },
+            ]} />
+            <InventoryDiagram overview={overview} />
+            <StatusChart title="Customer voice" caption="Review moderation and feedback status" rows={[
+              { label: "Reviews approved", value: overview.reviews.approved, color: "bar-lime" },
+              { label: "Reviews pending", value: overview.reviews.pending, color: "bar-coral" },
+              { label: "Feedback in progress", value: overview.feedback.in_progress, color: "bar-blue" },
+              { label: "Feedback resolved", value: overview.feedback.resolved, color: "bar-violet" },
+            ]} />
+            <section className="analytics-card catalog-insight">
+              <div className="chart-heading"><div><h3>Catalog mix</h3><p>Active range and pack options</p></div><span className="chart-kicker">YOUR RANGE</span></div>
+              <div className="catalog-total"><strong>{overview.catalog.active_products.toLocaleString()}</strong><span>active products</span></div>
+              <div className="catalog-foot"><span>Active pack options</span><strong>{overview.catalog.active_variants.toLocaleString()}</strong></div>
+              <p className="catalog-average">
+                {overview.catalog.active_products
+                  ? (overview.catalog.active_variants / overview.catalog.active_products).toLocaleString(undefined, { maximumFractionDigits: 1 })
+                  : "0"} pack options per active product
+              </p>
+            </section>
           </div>
           <p className="muted">
             Order figures are status counts only, not sales or revenue. This
@@ -1406,13 +1446,14 @@ function App() {
     id: DashboardTab;
     label: string;
     permission: string | null;
+    group: string;
   }[] = [
-    { id: "catalog", label: "Catalog", permission: "catalog.view_product" },
-    { id: "inventory", label: "Inventory", permission: "inventory.view_stockbalance" },
-    { id: "orders", label: "Orders", permission: "orders.view_order" },
-    { id: "reviews", label: "Reviews", permission: "reviews.view_productreview" },
-    { id: "feedback", label: "Feedback", permission: "feedback.view_customerfeedback" },
-    { id: "analytics", label: "Analytics", permission: null },
+    { id: "analytics", label: "Analytics", permission: null, group: "Overview" },
+    { id: "catalog", label: "Catalog", permission: "catalog.view_product", group: "Store" },
+    { id: "inventory", label: "Inventory", permission: "inventory.view_stockbalance", group: "Store" },
+    { id: "orders", label: "Orders", permission: "orders.view_order", group: "Store" },
+    { id: "reviews", label: "Reviews", permission: "reviews.view_productreview", group: "Customer care" },
+    { id: "feedback", label: "Feedback", permission: "feedback.view_customerfeedback", group: "Customer care" },
   ];
   const visibleTabs = sectionOptions.filter(
     (section) =>
@@ -1425,63 +1466,42 @@ function App() {
 
   return (
     <main className="dashboard">
-      <header className="dashboard-header">
-        <a className="brand" href="/">
-          Syntrix <span>Quest</span>
-        </a>
-        <div className="staff-controls">
-          <span className="staff-name">{user.username}</span>
-          <button className="button button-secondary" onClick={() => void handleLogout()}>
-            Sign out
-          </button>
-        </div>
-      </header>
-
-      <div className="dashboard-content">
-        <div className="dashboard-intro">
-          <div>
-            <p className="eyebrow">Operations</p>
-            <h1>Administration</h1>
-            <p className="muted">
-              Open the catalog, inventory, order queue, analytics, and customer
-              workflows available to your role.
-            </p>
-          </div>
-          {visibleTabs.length > 0 && (
-            <nav aria-label="Admin sections" className="tab-list">
-              {visibleTabs.map((section) => (
+      <aside className="admin-sidebar">
+        <a className="admin-brand" href="/" aria-label="Syntrix Quest admin home"><span className="admin-mark">S</span><span>syntrix<small>QUEST / ADMIN</small></span></a>
+        <div className="sidebar-divider" />
+        <div className="sidebar-label">WORKSPACE</div>
+        {visibleTabs.length > 0 && (
+          <nav aria-label="Admin sections" className="admin-nav">
+            {visibleTabs.map((section, index) => (
+              <div className="nav-group" key={section.id}>
+                {section.group !== visibleTabs[index - 1]?.group && (
+                  <span className="nav-group-label">{section.group}</span>
+                )}
                 <button
-                  aria-selected={currentTab?.id === section.id}
-                  className={currentTab?.id === section.id ? "tab active" : "tab"}
-                  key={section.id}
+                  aria-current={currentTab?.id === section.id ? "page" : undefined}
+                  className={currentTab?.id === section.id ? "admin-nav-item active" : "admin-nav-item"}
                   onClick={() => setActiveTab(section.id)}
-                  role="tab"
                 >
+                  <span className={`nav-glyph glyph-${section.id}`} aria-hidden="true" />
                   {section.label}
                 </button>
-              ))}
-            </nav>
-          )}
-        </div>
-
-        {logoutError && <p className="notice notice-error">{logoutError}</p>}
-        {visibleTabs.length === 0 ? (
-          <p className="notice notice-error">
-            This staff account does not have permissions for an admin section.
-          </p>
-        ) : currentTab?.id === "catalog" ? (
-          <CatalogPanel />
-        ) : currentTab?.id === "inventory" ? (
-          <InventoryPanel />
-        ) : currentTab?.id === "orders" ? (
-          <OrderQueuePanel />
-        ) : currentTab?.id === "reviews" ? (
-          <ReviewsPanel />
-        ) : currentTab?.id === "analytics" ? (
-          <AnalyticsPanel />
-        ) : (
-          <FeedbackPanel />
+              </div>
+            ))}
+          </nav>
         )}
+        <div className="sidebar-spacer" />
+        <div className="sidebar-user"><span className="user-avatar">{user.username.slice(0, 1).toUpperCase()}</span><div><strong>{user.username}</strong><small>Store administrator</small></div></div>
+      </aside>
+      <div className="dashboard-main">
+        <header className="dashboard-header">
+          <div className="header-context"><span>Syntrix Quest</span><b>/</b><strong>{currentTab?.label ?? "Workspace"}</strong></div>
+          <div className="staff-controls"><span className="system-status"><i /> Staff workspace</span><button className="button button-secondary" onClick={() => void handleLogout()}>Sign out <span aria-hidden="true">↗</span></button></div>
+        </header>
+        <div className="dashboard-content">
+          <div className="dashboard-intro"><div><p className="eyebrow">YOUR STORE, IN FOCUS</p><h1>{currentTab?.label ?? "Administration"}</h1><p className="muted">{currentTab?.id === "analytics" ? "A clear picture of the moving parts in your business." : `Manage your store's ${currentTab?.label.toLowerCase()} in one place.`}</p></div><span className="intro-date">STORE WORKSPACE <i /></span></div>
+          {logoutError && <p className="notice notice-error">{logoutError}</p>}
+          {visibleTabs.length === 0 ? <p className="notice notice-error">This staff account does not have permissions for an admin section.</p> : currentTab?.id === "catalog" ? <CatalogPanel /> : currentTab?.id === "inventory" ? <InventoryPanel /> : currentTab?.id === "orders" ? <OrderQueuePanel /> : currentTab?.id === "reviews" ? <ReviewsPanel /> : currentTab?.id === "analytics" ? <AnalyticsPanel /> : <FeedbackPanel />}
+        </div>
       </div>
     </main>
   );

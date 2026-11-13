@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "Syntrix Quest | Business and packaging supplies",
   description:
     "Browse packaging, disposable products, and business supplies from Syntrix Quest.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#f8f7f1",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

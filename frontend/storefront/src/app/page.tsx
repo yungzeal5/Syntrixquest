@@ -23,20 +23,14 @@ async function CatalogSection() {
   }
 
   return (
-    <section
-      className="mx-auto max-w-7xl px-5 py-14 sm:py-18"
-      id="catalog"
-    >
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <section className="catalog-section mx-auto max-w-7xl px-5 py-16 sm:py-24" id="catalog">
+      <div className="catalog-heading mb-10 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-bold uppercase tracking-widest text-[#087e8b]">
-            Syntrix selection
-          </p>
-          <h2 className="mt-2 text-3xl font-semibold">Shop the catalog</h2>
+          <p className="section-kicker">The essentials edit</p>
+          <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">Shop the catalog<span>.</span></h2>
+          <p className="mt-3 max-w-xl text-base leading-7 text-slate-600">Thoughtful everyday supplies for the people who keep things moving.</p>
         </div>
-        <p className="text-sm text-slate-500">
-          {products.length} product{products.length === 1 ? "" : "s"}
-        </p>
+        <p className="product-count">{products.length} items <span aria-hidden="true">↗</span></p>
       </div>
 
       {catalogError ? (
@@ -60,24 +54,24 @@ async function CatalogSection() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
             <article
-              className="flex flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+              className="product-card flex flex-col"
               key={product.id}
             >
-              <p className="text-xs font-bold uppercase tracking-widest text-[#087e8b]">
+              <p className="category-label">
                 {product.category.name}
               </p>
-              <h3 className="mt-3 text-xl font-semibold">{product.name}</h3>
+              <h3 className="mt-3 text-xl">{product.name}</h3>
               <Link
-                className="mt-1 text-sm font-semibold text-[#087e8b] hover:underline"
+                className="product-link mt-1"
                 href={`/products/${encodeURIComponent(product.slug)}`}
               >
                 Product details and reviews
               </Link>
-              <p className="mt-2 min-h-12 text-sm leading-6 text-slate-600">
+              <p className="product-description mt-3 min-h-12">
                 {product.description || "A practical choice for everyday use."}
               </p>
-              <div className="mt-5 border-t border-slate-100 pt-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <div className="pack-list mt-5 border-t pt-4">
+                <h4 className="pack-title">
                   Available packs
                 </h4>
                 <ul className="mt-3 space-y-3">
@@ -87,15 +81,15 @@ async function CatalogSection() {
                       key={variant.id}
                     >
                       <span>
-                        <span className="block font-medium text-slate-800">
+                        <span className="variant-label block">
                           {variant.label}
                         </span>
-                        <span className="text-xs text-slate-500">
+                        <span className="variant-meta">
                           {variant.pack_quantity} {variant.pack_unit}
                         </span>
                       </span>
                       <span className="flex shrink-0 flex-col items-end gap-2">
-                        <span className="font-semibold">
+                        <span className="variant-price">
                           {formatPrice(variant.price)}
                         </span>
                         <AddToCartButton variantId={variant.id} />
@@ -114,56 +108,39 @@ async function CatalogSection() {
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#f4f6f8] text-[#142b4a]">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5">
-          <Link className="text-xl font-bold tracking-tight" href="/">
-            Syntrix <span className="text-[#087e8b]">Quest</span>
+      <main className="storefront min-h-screen text-[#173b35]">
+      <header className="store-header">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
+          <Link className="store-brand" href="/" aria-label="Syntrix Quest home">
+            <span className="brand-mark">S</span><span>syntrix<span className="brand-dot">.</span></span>
           </Link>
-          <nav aria-label="Main navigation">
-            <div className="flex items-center gap-5">
-              <Link
-                className="text-sm font-semibold text-slate-600 hover:text-[#087e8b]"
-                href="/cart"
-              >
-                Cart
-              </Link>
-              <Link
-                className="text-sm font-semibold text-slate-600 hover:text-[#087e8b]"
-                href="/forgot-password"
-              >
-                Account help
-              </Link>
-              <Link
-                className="text-sm font-semibold text-slate-600 hover:text-[#087e8b]"
-                href="/feedback"
-              >
-                Feedback
-              </Link>
-            </div>
+          <nav aria-label="Main navigation" className="store-nav">
+            <Link href="/#catalog">Shop</Link>
+            <Link href="/feedback">Get in touch</Link>
+            <Link className="cart-link" href="/cart">Cart <span aria-hidden="true">↗</span></Link>
           </nav>
         </div>
       </header>
 
-      <section className="bg-[#142b4a] text-white">
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:py-24">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-300">
-            Packaging, disposables & business supplies
-          </p>
-          <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-tight sm:text-6xl">
-            Everyday essentials, ready for your business.
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">
-            Browse practical supplies for work, retail, food service, and home.
-          </p>
-          <a
-            className="mt-8 inline-flex rounded-md bg-teal-300 px-5 py-3 font-semibold text-[#142b4a] hover:bg-teal-200"
-            href="#catalog"
-          >
-            Browse catalog
-          </a>
+      <section className="hero-section">
+        <div className="hero-inner mx-auto grid max-w-7xl items-center gap-5 px-5 py-12 sm:px-8 lg:grid-cols-[.92fr_1.08fr] lg:py-16">
+          <div className="hero-copy">
+            <p className="hero-kicker"><span /> Supplies for everyday momentum</p>
+            <h1>Good things<br />for <em>busy</em> businesses.</h1>
+            <p className="hero-description">Packaging, disposables and practical essentials—selected to make your day run a little smoother.</p>
+            <a className="hero-cta" href="#catalog">Explore the collection <span aria-hidden="true">↘</span></a>
+            <div className="hero-note"><span className="note-star">✳</span><span>Useful by design.<br /><strong>Ready for real life.</strong></span></div>
+          </div>
+          <div className="hero-art" role="img" aria-label="A curated still life of packaging and business essentials">
+            <div className="art-badge">THE EVERYDAY<br /><strong>COLLECTION</strong></div>
+            <span className="art-caption">MADE FOR THE DAILY DO</span>
+          </div>
         </div>
       </section>
+
+      <div className="marquee-strip" aria-label="Syntrix Quest business essentials">
+        <div>PACK WELL <span>✳</span> WORK SMART <span>✳</span> KEEP THINGS MOVING <span>✳</span> PACK WELL <span>✳</span> WORK SMART <span>✳</span></div>
+      </div>
 
       <Suspense
         fallback={
@@ -178,13 +155,13 @@ export default function Home() {
         <CatalogSection />
       </Suspense>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-3 px-5 py-6 text-sm text-slate-500">
+      <footer className="store-footer border-t">
+        <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-3 px-5 py-7 text-sm">
           <span>Syntrix Quest</span>
-          <Link className="hover:text-[#087e8b]" href="/forgot-password">
+          <Link className="hover:text-[#eb6846]" href="/forgot-password">
             Password help
           </Link>
-          <Link className="hover:text-[#087e8b]" href="/feedback">
+          <Link className="hover:text-[#eb6846]" href="/feedback">
             Feedback
           </Link>
         </div>
