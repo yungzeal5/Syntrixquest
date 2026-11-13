@@ -1,0 +1,15 @@
+node_modules/
+.next/
+dist/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+backend/db.sqlite3
+.env
+.env.local
+.npm-cache/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+Thumbs.db
